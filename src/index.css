@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#06101E] text-[#FFEFDE] antialiased selection:bg-[#832E43] selection:text-white;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Efeito de brilho pulsante vibrante para mobile */
+@keyframes festivalGlow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+.festival-ambient-glow {
+  animation: festivalGlow 6s ease-in-out infinite;
+}
+
+/* Estilização impecável para barras de rolagem */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #06101E;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #832E43;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #dc2626;
+}
