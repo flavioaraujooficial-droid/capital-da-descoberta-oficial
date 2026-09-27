@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
-import { Hero } from '@/components/Hero';
-import { LoginModal, type VoterInfo } from '@/components/LoginModal';
-import { ShareableCard, type CardData } from '@/components/ShareableCard';
-import { Ranking } from '@/components/Ranking';
-import { StreetFeed } from '@/components/StreetFeed';
-import { Footer } from '@/components/Footer';
-import { supabase, type Vote } from '@/lib/supabase';
-import type { Artist } from '@/data/artists';
-import { TERRITORIES, type Territory } from '@/data/territories';
+import { Hero } from './components/Hero';
+import { LoginModal, type VoterInfo } from './components/LoginModal';
+import { ShareableCard, type CardData } from './components/ShareableCard';
+import { Ranking } from './components/Ranking';
+import { StreetFeed } from './components/StreetFeed';
+import { Footer } from './components/Footer';
+import { supabase, type Vote } from './lib/supabase';
+import type { Artist } from './data/artists';
+import { TERRITORIES, type Territory } from './data/territories';
 
 type PendingVote = {
   artistName: string;
@@ -123,7 +123,7 @@ function App() {
           playsInline
           className="w-full h-full object-cover opacity-20 filter brightness-75"
         >
-          <source src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c4/Concert_crowd_lights_loop.webm/Concert_crowd_lights_loop.webm.high.webm" type="webm" />
+          <source src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c4/Concert_crowd_lights_loop.webm/Concert_crowd_lights_loop.webm.high.webm" type="video/webm" />
         </video>
         {/* Camada escurecida em gradiente para garantir contraste e legibilidade */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#06101E]/90 via-[#06101E]/75 to-[#06101E]/90" />
