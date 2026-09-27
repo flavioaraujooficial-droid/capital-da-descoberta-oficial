@@ -115,12 +115,20 @@ function App() {
     : '';
 
   return (
-    <div className="min-h-screen bg-[#06101E] text-white">
-      {/* Ambient background — deep navy festival atmosphere */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/3 h-96 w-96 rounded-full bg-[#832E43]/8 blur-3xl" />
-        <div className="absolute bottom-1/4 right-0 h-80 w-80 rounded-full bg-[#dc2626]/5 blur-3xl" />
-        <div className="absolute top-1/2 left-0 h-72 w-72 rounded-full bg-cyan-900/8 blur-3xl" />
+    <div className="min-h-screen bg-[#06101E] text-white relative overflow-hidden">
+      {/* Vídeo de fundo em loop com atmosfera de festival */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover opacity-20 filter brightness-75"
+        >
+          <source src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c4/Concert_crowd_lights_loop.webm/Concert_crowd_lights_loop.webm.high.webm" type="video/webm" />
+        </video>
+        {/* Camada escurecida em gradiente para garantir contraste e legibilidade */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#06101E]/90 via-[#06101E]/75 to-[#06101E]/90" />
       </div>
 
       <div className="relative z-10">
