@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
 import { Hero } from '@/components/Hero';
-import { SearchBar } from '@/components/SearchBar';
-import { TerritorySelector } from '@/components/TerritorySelector';
 import { LoginModal, type VoterInfo } from '@/components/LoginModal';
 import { ShareableCard, type CardData } from '@/components/ShareableCard';
 import { Ranking } from '@/components/Ranking';
@@ -125,14 +123,13 @@ function App() {
           playsInline
           className="w-full h-full object-cover opacity-20 filter brightness-75"
         >
-          <source src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c4/Concert_crowd_lights_loop.webm/Concert_crowd_lights_loop.webm.high.webm" type="video/webm" />
+          <source src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c4/Concert_crowd_lights_loop.webm/Concert_crowd_lights_loop.webm.high.webm" type="webm" />
         </video>
         {/* Camada escurecida em gradiente para garantir contraste e legibilidade */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#06101E]/90 via-[#06101E]/75 to-[#06101E]/90" />
       </div>
 
       <div className="relative z-10">
-        {/* Hero Section with integrated territory selector and search */}
         <Hero
           onSelectArtist={handleSelectArtist}
           onSubmitCustom={handleCustomSubmit}
@@ -140,7 +137,6 @@ function App() {
           onSelectTerritory={setTerritory}
         />
 
-        {/* Ranking e Feed da Rua */}
         <div className="max-w-4xl mx-auto px-4 py-8 space-y-4">
           <Ranking votes={votes} territory={territory} />
           <StreetFeed votes={votes} territory={territory} />
@@ -155,7 +151,6 @@ function App() {
         <Footer />
       </div>
 
-      {/* Modais */}
       <LoginModal
         open={loginOpen}
         onClose={() => setLoginOpen(false)}
@@ -169,7 +164,6 @@ function App() {
         card={cardData}
       />
 
-      {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] rounded-xl bg-[#0d1b2a] border border-[#832E43]/30 px-5 py-3 text-sm text-[#FFEFDE] shadow-2xl animate-[slideUp_0.3s_ease-out]">
           <div className="flex items-center gap-2">
