@@ -1,34 +1,25 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
 import { Hero } from './components/Hero';
-import { LoginModal, type VoterInfo } from './components/LoginModal';
-import { ShareableCard, type CardData } from './components/ShareableCard';
+import { LoginModal } from './components/LoginModal';
+import { ShareableCard } from './components/ShareableCard';
 import { Ranking } from './components/Ranking';
 import { StreetFeed } from './components/StreetFeed';
 import { Footer } from './components/Footer';
-import { supabase, type Vote } from './lib/supabase';
-import { type Artist } from './data/artists';
-import { TERRITORIES, type Territory } from './data/territories';
-
-type PendingVote = {
-  artistName: string;
-  songName: string;
-  decade: string;
-  imageUrl: string;
-  isCustom: boolean;
-};
+import { supabase } from './lib/supabase';
+import { TERRITORIES } from './data/territories';
 
 function App() {
-  const [territory, setTerritory] = useState<Territory>(TERRITORIES[0]);
-  const [pendingVote, setPendingVote] = useState<PendingVote | null>(null);
+  const [territory, setTerritory] = useState(TERRITORIES[0]);
+  const [pendingVote, setPendingVote] = useState(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
-  const [cardData, setCardData] = useState<CardData | null>(null);
-  const [votes, setVotes] = useState<Vote[]>([]);
+  const [cardData, setCardData] = useState(null);
+  const [votes, setVotes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState(null);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
@@ -43,7 +34,7 @@ function App() {
       setLoading(false);
       return;
     }
-    setVotes(data as Vote[]);
+    setVotes(data || []);
     setLoading(false);
   }, []);
 
@@ -51,7 +42,7 @@ function App() {
     loadVotes();
   }, [loadVotes]);
 
-  const handleSelectArtist = (artist: Artist) => {
+  const handleSelectArtist = (artist) => {
     setPendingVote({
       artistName: artist.name,
       songName: artist.song,
@@ -62,7 +53,7 @@ function App() {
     setLoginOpen(true);
   };
 
-  const handleCustomSubmit = (query: string) => {
+  const handleCustomSubmit = (query) => {
     setPendingVote({
       artistName: query,
       songName: 'Voto personalizado',
@@ -73,7 +64,7 @@ function App() {
     setLoginOpen(true);
   };
 
-  const handleConfirmVote = async (info: VoterInfo) => {
+  const handleConfirmVote = async (info) => {
     if (!pendingVote) return;
     setLoginOpen(false);
 
