@@ -7,7 +7,7 @@ import { Ranking } from './components/Ranking';
 import { StreetFeed } from './components/StreetFeed';
 import { Footer } from './components/Footer';
 import { supabase, type Vote } from './lib/supabase';
-import type { Artist } from './data/artists';
+import { type Artist } from './data/artists';
 import { TERRITORIES, type Territory } from './data/territories';
 
 type PendingVote = {
