@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Download, Link2, X, Check, Star } from 'lucide-react';
+import { Download, Share2, X, Check, Star } from 'lucide-react';
 import type { VoterInfo } from './LoginModal';
 import type { Territory } from '@/data/territories';
 
@@ -21,7 +21,7 @@ type ShareableCardProps = {
 export function ShareableCard({ open, onClose, card }: ShareableCardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
@@ -189,7 +189,7 @@ export function ShareableCard({ open, onClose, card }: ShareableCardProps) {
     ctx.fillStyle = '#FFEFDE';
     ctx.font = '600 28px Arial, sans-serif';
     ctx.textBaseline = 'middle';
-    ctx.fillText('FlavioAraujo.com', 140, footerY + 35);
+    ctx.fillText('capitaldadescoberta.com.br', 140, footerY + 35);
 
     ctx.fillStyle = '#FFEFDE';
     ctx.globalAlpha = 0.4;
@@ -253,22 +253,13 @@ export function ShareableCard({ open, onClose, card }: ShareableCardProps) {
     link.click();
   };
 
-  const handleCopyLink = async () => {
-    const url = window.location.href;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = url;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+  const handleWhatsAppShare = () => {
+    const text = encodeURIComponent(
+      `🎶 Eu já deixei minha memória marcada no Capital da Descoberta! Escolhi "${card?.songName}" de ${card?.artistName}.\n\nE você, qual música marcou a sua história na Bahia? Clica aí e participe do festival!\n\n👉 https://capitaldadescoberta.com.br`
+    );
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    setShared(true);
+    setTimeout(() => setShared(false), 2500);
   };
 
   if (!open || !card) return null;
@@ -317,11 +308,11 @@ export function ShareableCard({ open, onClose, card }: ShareableCardProps) {
             Baixar Imagem do Card
           </button>
           <button
-            onClick={handleCopyLink}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#832E43]/20 hover:bg-[#832E43]/30 text-[#FFEFDE] font-semibold py-3.5 transition-colors border border-[#832E43]/30"
+            onClick={handleWhatsAppShare}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 transition-colors shadow-lg shadow-emerald-600/20"
           >
-            {copied ? <Check className="h-5 w-5 text-green-400" /> : <Link2 className="h-5 w-5" />}
-            {copied ? 'Link Copiado!' : 'Compartilhar / Copiar Link'}
+            {shared ? <Check className="h-5 w-5 text-white" /> : <Share2 className="h-5 w-5" />}
+            {shared ? 'Compartilhado!' : 'Compartilhar no WhatsApp'}
           </button>
         </div>
       </div>
