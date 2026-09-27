@@ -131,32 +131,6 @@ export function LoginModal({ open, onClose, onConfirm, selectedLabel, territory 
             </div>
           </div>
 
-          {/* Social quick login icons */}
-          <div className="flex items-center gap-3 pt-1">
-            <span className="text-xs text-[#FFEFDE]/40">Login rápido:</span>
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 hover:scale-110 transition-transform"
-              title="Instagram"
-            >
-              <Instagram className="h-4 w-4 text-white" />
-            </button>
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white hover:scale-110 transition-transform text-sm font-bold text-gray-900"
-              title="Google"
-            >
-              G
-            </button>
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 hover:scale-110 transition-transform text-sm font-bold text-white"
-              title="Facebook"
-            >
-              f
-            </button>
-          </div>
-
           {error && <p className="text-xs text-red-400">{error}</p>}
 
           <button
