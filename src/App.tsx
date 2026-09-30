@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Disc, Flame, Music2, Radio, Sparkles, Trophy, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Disc, Flame, Music2, Radio, Sparkles, Trophy, Loader2, Play, Pause } from 'lucide-react';
 
 interface Song {
   id: string;
@@ -14,6 +14,10 @@ export function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Song[]>([]);
   const [loading, setLoading] = useState(false);
+  const [playingSongId, setPlayingSongId] = useState<string | null>(null);
+
+  // Referência do elemento de áudio do HTML5
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Lista do Ranking (Mais Votadas)
   const topVoted: Song[] = [
@@ -30,7 +34,37 @@ export function App() {
     { id: 'sertanejo', label: 'Modão Sertanejo', desc: 'As Melhores do Brasil', icon: Flame, color: 'from-emerald-500/20 to-teal-600/20 border-emerald-500/40 text-emerald-300' },
   ];
 
-  // Busca na iTunes API (Oficial, pública e sem bloqueios de CORS)
+  // Função para Tocar / Pausar a Música
+  const handlePlayPreview = (song: Song) => {
+    if (!song.preview) return;
+
+    if (playingSongId === song.id) {
+      audioRef.current?.pause();
+      setPlayingSongId(null);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const newAudio = new Audio(song.preview);
+      audioRef.current = newAudio;
+      newAudio.play();
+      setPlayingSongId(song.id);
+
+      newAudio.onended = () => {
+        setPlayingSongId(null);
+      };
+    }
+  };
+
+  // Parar áudio se apagar a busca
+  useEffect(() => {
+    if (!searchTerm.trim() && audioRef.current) {
+      audioRef.current.pause();
+      setPlayingSongId(null);
+    }
+  }, [searchTerm]);
+
+  // Busca na iTunes API
   useEffect(() => {
     if (!searchTerm.trim()) {
       setSearchResults([]);
@@ -100,7 +134,7 @@ export function App() {
         </div>
       </div>
 
-      {/* RESULTADOS DA BUSCA EM TEMPO REAL */}
+      {/* RESULTADOS DA BUSCA COM REPRODUÇÃO */}
       {searchTerm.trim() !== '' && (
         <div className="space-y-3 bg-[#0d152a] border border-white/10 rounded-2xl p-4 shadow-2xl">
           <h3 className="text-xs font-bold text-white/70 uppercase flex items-center gap-2">
@@ -109,23 +143,52 @@ export function App() {
 
           <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
             {searchResults.length > 0 ? (
-              searchResults.map((song) => (
-                <div
-                  key={song.id}
-                  className="flex items-center justify-between bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition-all"
-                >
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <img src={song.cover} alt={song.title} className="w-11 h-11 rounded-lg object-cover flex-shrink-0" />
-                    <div className="truncate">
-                      <p className="text-xs font-bold text-white leading-tight truncate">{song.title}</p>
-                      <p className="text-[11px] text-white/60 truncate">{song.artist}</p>
+              searchResults.map((song) => {
+                const isPlaying = playingSongId === song.id;
+
+                return (
+                  <div
+                    key={song.id}
+                    className="flex items-center justify-between bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition-all"
+                  >
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="relative group flex-shrink-0 cursor-pointer" onClick={() => handlePlayPreview(song)}>
+                        <img src={song.cover} alt={song.title} className="w-11 h-11 rounded-lg object-cover" />
+                        <div className={`absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center transition-opacity ${isPlaying ? 'opacity-100' : 'opacity-0 hover:opacity-100'}`}>
+                          {isPlaying ? (
+                            <Pause className="h-5 w-5 text-white fill-white" />
+                          ) : (
+                            <Play className="h-5 w-5 text-white fill-white ml-0.5" />
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="truncate">
+                        <p className="text-xs font-bold text-white leading-tight truncate">{song.title}</p>
+                        <p className="text-[11px] text-white/60 truncate">{song.artist}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                      <button
+                        onClick={() => handlePlayPreview(song)}
+                        className={`p-2 rounded-lg border text-xs font-bold transition-all ${
+                          isPlaying
+                            ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                            : 'bg-white/5 border-white/10 text-white/70 hover:text-white'
+                        }`}
+                        title="Ouvir prévia"
+                      >
+                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      </button>
+
+                      <button className="bg-[#dc2626] hover:bg-red-700 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition-all">
+                        Votar
+                      </button>
                     </div>
                   </div>
-                  <button className="bg-[#dc2626] hover:bg-red-700 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold transition-all flex-shrink-0 ml-2">
-                    Votar
-                  </button>
-                </div>
-              ))
+                );
+              })
             ) : (
               !loading && <p className="text-xs text-white/40 py-4 text-center">Nenhuma música encontrada. Tente outro nome!</p>
             )}
