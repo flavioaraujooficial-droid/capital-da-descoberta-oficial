@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Disc, Flame, Music2, Radio, Sparkles } from 'lucide-react';
 
-export function HomeSection() {
+export function App() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const categories = [
@@ -14,7 +14,7 @@ export function HomeSection() {
   return (
     <div className="min-h-screen bg-[#070b19] text-white px-4 py-8 max-w-lg mx-auto space-y-8">
       
-      {/* topo discreto */}
+      {/* Topo discreto */}
       <div className="text-center space-y-3">
         <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#dc2626] bg-[#dc2626]/10 px-3 py-1 rounded-full border border-[#dc2626]/20">
           <Sparkles className="h-3 w-3" />
@@ -78,3 +78,5 @@ export function HomeSection() {
     </div>
   );
 }
+
+export default App;
