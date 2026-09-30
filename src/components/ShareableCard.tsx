@@ -1,115 +1,133 @@
-import { X, Share2, Download, Award, Music, MapPin, Sparkles } from 'lucide-react';
-import { useRef } from 'react';
+import React, { useRef } from 'react';
+import { Share2, Download, X, Music, CheckCircle2 } from 'lucide-react';
+import html2canvas from 'html2canvas';
 
-// Tipagem simplificada para evitar erros no Vercel
-export type VoterInfo = {
-  name: string;
-  city: string;
-  instagram?: string;
-};
-
-type ShareableCardProps = {
+interface ShareableCardProps {
   open: boolean;
   onClose: () => void;
   cardData: {
     artistName: string;
     songName: string;
-    decade: string;
-    imageUrl: string;
-    voter: VoterInfo;
+    decade?: string;
+    imageUrl?: string;
+    voter?: {
+      name: string;
+      city: string;
+      instagram?: string;
+    };
   } | null;
-  onShare: () => void;
-  onDownload?: () => void;
-};
+  onShare?: () => void;
+}
 
-export function ShareableCard({ open, onClose, cardData, onShare, onDownload }: ShareableCardProps) {
+export function ShareableCard({ open, onClose, cardData, onShare }: ShareableCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
   if (!open || !cardData) return null;
 
+  const handleDownload = async () => {
+    if (!cardRef.current) return;
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#060a17',
+      });
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `voto-capital-da-descoberta-${cardData.songName.replace(/\s+/g, '-').toLowerCase()}.png`;
+      link.click();
+    } catch (err) {
+      console.error('Erro ao baixar imagem:', err);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 bg-black/85 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-sm rounded-3xl bg-gradient-to-b from-[#0f172a] via-[#0b1329] to-[#060a17] border border-[#dc2626]/30 p-5 shadow-2xl text-[#FFEFDE] max-h-[95vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[200] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+      <div className="relative w-full max-w-sm bg-[#0b1329] border border-[#dc2626]/40 rounded-3xl p-5 shadow-2xl space-y-4">
         
-        {/* Botão de Fechar */}
+        {/* Botão Fechar */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white/70 hover:text-white hover:bg-black/80 transition-colors"
+          className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </button>
 
-        {/* O CARD VISUAL (Pronto para Story do Insta / Status do WhatsApp) */}
-        <div 
-          ref={cardRef} 
-          className="relative overflow-hidden rounded-2xl bg-[#06101E] border border-[#dc2626]/40 p-5 shadow-xl text-center mb-4 mt-2"
+        {/* CARTÃO VISUAL (ÁREA CAPTURADA) */}
+        <div
+          ref={cardRef}
+          className="bg-gradient-to-b from-[#111c3a] to-[#060a17] border border-[#dc2626]/30 rounded-2xl p-6 text-center space-y-4 text-white relative overflow-hidden shadow-inner"
         >
-          {/* Efeitos de Luz de Fundo (Glow de Festival) */}
-          <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-[#dc2626]/25 blur-2xl"></div>
-          <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-amber-500/15 blur-2xl"></div>
-
-          {/* Selo Superior */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dc2626]/15 border border-[#dc2626]/30 text-[#dc2626] text-[10px] font-bold tracking-wider uppercase mb-3">
-            <Award className="h-3.5 w-3.5" />
-            Voto Oficial • Capital da Descoberta
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dc2626]/20 border border-[#dc2626]/40 text-[#dc2626] text-[10px] font-extrabold uppercase tracking-widest">
+            <Music className="h-3 w-3" />
+            Voto Oficial Registrado
           </div>
 
-          {/* Capa do Artista / Disco */}
-          <div className="relative mx-auto mb-3 h-28 w-28 overflow-hidden rounded-2xl border-2 border-[#dc2626]/50 shadow-xl">
-            <img 
-              src={cardData.imageUrl || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80"} 
-              alt={cardData.artistName}
-              className="h-full w-full object-cover"
+          <h2 className="text-[#FFEFDE] text-xs uppercase tracking-wider font-semibold opacity-80">
+            Festival Capital da Descoberta
+          </h2>
+
+          {/* Imagem da Capa */}
+          <div className="relative w-28 h-28 mx-auto rounded-2xl overflow-hidden shadow-2xl border-2 border-[#dc2626]/40">
+            <img
+              src={cardData.imageUrl || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400'}
+              alt={cardData.songName}
+              className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
           </div>
 
-          {/* Informações da Música */}
-          <div className="space-y-1 mb-4">
-            <div className="flex items-center justify-center gap-1.5 text-amber-400 text-xs font-semibold">
-              <Music className="h-3.5 w-3.5" />
-              <span>{cardData.decade || "Trilha Sonora da Minha Vida"}</span>
-            </div>
-            <h4 className="text-xl font-black tracking-tight text-white line-clamp-1">
+          {/* Nome da Música e Artista */}
+          <div className="space-y-1">
+            <h3 className="text-xl font-black text-white leading-tight">
               {cardData.songName}
-            </h4>
-            <p className="text-sm font-medium text-[#FFEFDE]/80 line-clamp-1">
+            </h3>
+            <p className="text-sm font-medium text-[#dc2626]">
               {cardData.artistName}
             </p>
           </div>
 
-          {/* Divisor */}
-          <div className="my-3 h-px w-full bg-gradient-to-r from-transparent via-[#dc2626]/40 to-transparent"></div>
+          <hr className="border-white/10 my-2" />
 
-          {/* Dados do Eleitor e Cidade */}
-          <div className="flex flex-col items-center gap-0.5 text-xs">
-            <div className="flex items-center gap-1 font-bold text-white">
-              <Sparkles className="h-3 w-3 text-[#dc2626]" />
-              <span>{cardData.voter.name}</span>
+          {/* Dados do Eleitor */}
+          {cardData.voter && (
+            <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-xs space-y-1">
+              <p className="font-bold text-white">
+                Votado por: <span className="text-[#FFEFDE]">{cardData.voter.name}</span>
+              </p>
+              <p className="text-white/70">
+                📍 {cardData.voter.city}
+              </p>
+              {cardData.voter.instagram && (
+                <p className="text-[#dc2626] font-semibold">
+                  {cardData.voter.instagram}
+                </p>
+              )}
             </div>
-            <div className="flex items-center gap-1 text-[#FFEFDE]/60 text-[11px]">
-              <MapPin className="h-3 w-3 text-[#dc2626]" />
-              <span>{cardData.voter.city} — Bahia</span>
-            </div>
+          )}
+
+          <div className="flex items-center justify-center gap-1 text-[10px] text-white/40 pt-1">
+            <CheckCircle2 className="h-3 w-3 text-green-500" />
+            <span>Validade Garantida no Supabase</span>
           </div>
         </div>
 
-        {/* Botões de Ação */}
-        <div className="space-y-2">
+        {/* AÇÕES (Compartilhar e Baixar) */}
+        <div className="grid grid-cols-2 gap-3 pt-2">
           <button
-            onClick={onShare}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] py-3 text-sm font-bold text-black shadow-lg transition-all"
-          >
-            <Share2 className="h-4 w-4" />
-            Compartilhar no WhatsApp
-          </button>
-          
-          <button
-            onClick={onDownload || onShare}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#dc2626] hover:bg-[#b91c1c] py-2.5 text-sm font-semibold text-white transition-all"
+            onClick={handleDownload}
+            className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold text-xs transition-all"
           >
             <Download className="h-4 w-4" />
-            Baixar Imagem para o Instagram
+            Baixar Card
+          </button>
+
+          <button
+            onClick={onShare}
+            className="flex items-center justify-center gap-2 bg-[#dc2626] hover:bg-[#b91c1c] text-white py-3 rounded-xl font-bold text-xs shadow-lg transition-all"
+          >
+            <Share2 className="h-4 w-4" />
+            Compartilhar
           </button>
         </div>
 
