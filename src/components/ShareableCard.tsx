@@ -25,6 +25,7 @@ export function ShareableCard({ open, onClose, cardData, onShare }: ShareableCar
     <div className="fixed inset-0 z-[200] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
       <div className="relative w-full max-w-sm bg-[#0b1329] border border-[#dc2626]/40 rounded-3xl p-5 shadow-2xl space-y-4">
         
+        {/* Botão Fechar */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
@@ -32,6 +33,7 @@ export function ShareableCard({ open, onClose, cardData, onShare }: ShareableCar
           <X className="h-5 w-5" />
         </button>
 
+        {/* Card Visual */}
         <div className="bg-gradient-to-b from-[#111c3a] to-[#060a17] border border-[#dc2626]/30 rounded-2xl p-6 text-center space-y-4 text-white relative overflow-hidden">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dc2626]/20 border border-[#dc2626]/40 text-[#dc2626] text-[10px] font-extrabold uppercase tracking-widest">
             <Music className="h-3 w-3" />
@@ -69,15 +71,21 @@ export function ShareableCard({ open, onClose, cardData, onShare }: ShareableCar
               <p className="text-white/70">
                 📍 {cardData.voter.city}
               </p>
+              {cardData.voter.instagram && (
+                <p className="text-[#dc2626] font-semibold">
+                  {cardData.voter.instagram}
+                </p>
+              )}
             </div>
           )}
 
           <div className="flex items-center justify-center gap-1 text-[10px] text-white/40 pt-1">
             <CheckCircle2 className="h-3 w-3 text-green-500" />
-            <span>Voto Registrado</span>
+            <span>Voto Registrado no Supabase</span>
           </div>
         </div>
 
+        {/* Botão Compartilhar */}
         <button
           onClick={onShare}
           className="w-full flex items-center justify-center gap-2 bg-[#dc2626] hover:bg-[#b91c1c] text-white py-3 rounded-xl font-bold text-xs shadow-lg transition-all"
@@ -90,3 +98,5 @@ export function ShareableCard({ open, onClose, cardData, onShare }: ShareableCar
     </div>
   );
 }
+
+export default ShareableCard;
