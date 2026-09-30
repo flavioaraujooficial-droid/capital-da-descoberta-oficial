@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Disc, Flame, Music2, Radio, Sparkles, Trophy, Play, CheckCircle2 } from 'lucide-react';
+import { Search, Disc, Flame, Music2, Radio, Sparkles, Trophy, Loader2 } from 'lucide-react';
 
 interface Song {
   id: string;
@@ -15,7 +15,7 @@ export function App() {
   const [searchResults, setSearchResults] = useState<Song[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Lista Fixa das Mais Votadas (Ranking)
+  // Lista do Ranking (Mais Votadas)
   const topVoted: Song[] = [
     { id: '1', title: 'Evidências', artist: 'Chitãozinho & Xororó', cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100', votes: 142 },
     { id: '2', title: 'Telefone Mudo', artist: 'Trio Parada Dura', cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=100', votes: 118 },
@@ -30,42 +30,39 @@ export function App() {
     { id: 'sertanejo', label: 'Modão Sertanejo', desc: 'As Melhores do Brasil', icon: Flame, color: 'from-emerald-500/20 to-teal-600/20 border-emerald-500/40 text-emerald-300' },
   ];
 
-  // Busca de Músicas via API do Deezer
+  // Busca na iTunes API (Oficial, pública e sem bloqueios de CORS)
   useEffect(() => {
     if (!searchTerm.trim()) {
       setSearchResults([]);
       return;
     }
 
-    const delayDebounceFn = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `https://api.deezer.com/search?q=${encodeURIComponent(searchTerm)}&output=jsonp`,
-          { method: 'GET' }
+          `https://itunes.apple.com/search?term=${encodeURIComponent(searchTerm)}&media=music&limit=10&country=BR`
         );
-        // Fallback para fetch direto se jsonp não for necessário no browser
-        const res = await fetch(`https://corsproxy.io/?https://api.deezer.com/search?q=${encodeURIComponent(searchTerm)}`);
-        const data = await res.json();
+        const data = await response.json();
 
-        if (data && data.data) {
-          const formattedSongs: Song[] = data.data.slice(0, 8).map((item: any) => ({
-            id: item.id.toString(),
-            title: item.title,
-            artist: item.artist.name,
-            cover: item.album.cover_medium,
-            preview: item.preview,
+        if (data && data.results) {
+          const formattedSongs: Song[] = data.results.map((item: any) => ({
+            id: item.trackId.toString(),
+            title: item.trackName,
+            artist: item.artistName,
+            cover: item.artworkUrl100.replace('100x100bb', '300x300bb'),
+            preview: item.previewUrl,
           }));
           setSearchResults(formattedSongs);
         }
       } catch (error) {
-        console.error('Erro na busca de músicas:', error);
+        console.error('Erro ao buscar músicas:', error);
       } finally {
         setLoading(false);
       }
-    }, 400);
+    }, 350);
 
-    return () => clearTimeout(delayDebounceFn);
+    return () => clearTimeout(timer);
   }, [searchTerm]);
 
   return (
@@ -99,37 +96,38 @@ export function App() {
             placeholder="Digite o nome da música ou artista..."
             className="w-full bg-transparent text-sm text-white placeholder-white/40 focus:outline-none"
           />
+          {loading && <Loader2 className="h-4 w-4 text-[#dc2626] animate-spin ml-2" />}
         </div>
       </div>
 
-      {/* RESULTADOS DA BUSCA (Aparecem quando o usuário digita) */}
+      {/* RESULTADOS DA BUSCA EM TEMPO REAL */}
       {searchTerm.trim() !== '' && (
         <div className="space-y-3 bg-[#0d152a] border border-white/10 rounded-2xl p-4 shadow-2xl">
-          <h3 className="text-xs font-bold text-white/70 uppercase">
-            {loading ? 'Buscando músicas...' : 'Resultados da busca:'}
+          <h3 className="text-xs font-bold text-white/70 uppercase flex items-center gap-2">
+            {loading ? 'Buscando catálogo...' : `Resultados para "${searchTerm}":`}
           </h3>
 
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
             {searchResults.length > 0 ? (
               searchResults.map((song) => (
                 <div
                   key={song.id}
-                  className="flex items-center justify-between bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition-all cursor-pointer"
+                  className="flex items-center justify-between bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition-all"
                 >
-                  <div className="flex items-center gap-3">
-                    <img src={song.cover} alt={song.title} className="w-10 h-10 rounded-lg object-cover" />
-                    <div>
-                      <p className="text-xs font-bold text-white leading-tight">{song.title}</p>
-                      <p className="text-[11px] text-white/60">{song.artist}</p>
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <img src={song.cover} alt={song.title} className="w-11 h-11 rounded-lg object-cover flex-shrink-0" />
+                    <div className="truncate">
+                      <p className="text-xs font-bold text-white leading-tight truncate">{song.title}</p>
+                      <p className="text-[11px] text-white/60 truncate">{song.artist}</p>
                     </div>
                   </div>
-                  <button className="bg-[#dc2626] hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition-all">
+                  <button className="bg-[#dc2626] hover:bg-red-700 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold transition-all flex-shrink-0 ml-2">
                     Votar
                   </button>
                 </div>
               ))
             ) : (
-              !loading && <p className="text-xs text-white/40 py-2 text-center">Nenhuma música encontrada.</p>
+              !loading && <p className="text-xs text-white/40 py-4 text-center">Nenhuma música encontrada. Tente outro nome!</p>
             )}
           </div>
         </div>
