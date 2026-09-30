@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Music, Sparkles, Heart, Trophy, Radio, MapPin, Disc, Star, Flame } from 'lucide-react';
+import { Search, Music, Sparkles, Heart, Trophy, Radio, Disc, Flame } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { ShareableCard } from './components/ShareableCard';
 
@@ -19,15 +19,13 @@ export function App() {
   const [voterInfo, setVoterInfo] = useState({ name: '', city: '', instagram: '' });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Décadas / Categorias em Destaque para preencher a home
   const decadas = [
-    { label: 'Anos 70 & 80', query: 'Sucessos Anos 80', color: 'from-amber-600 to-red-600' },
+    { label: 'Anos 70 e 80', query: 'Sucessos Anos 80', color: 'from-amber-600 to-red-600' },
     { label: 'Anos 90', query: 'Sucessos Anos 90', color: 'from-purple-600 to-pink-600' },
     { label: 'Anos 2000', query: 'Sertanejo 2000', color: 'from-blue-600 to-indigo-600' },
     { label: 'Modão Sertanejo', query: 'Modao Sertanejo', color: 'from-emerald-600 to-teal-600' },
   ];
 
-  // Ranking em Tempo Real (Pré-carregado)
   const [ranking] = useState([
     { id: 1, song: 'Evidências', artist: 'Chitãozinho & Xororó', votes: 142, img: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100' },
     { id: 2, song: 'Telefone Mudo', artist: 'Trio Parada Dura', votes: 118, img: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=100' },
@@ -40,7 +38,7 @@ export function App() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Busca na Deezer com Proxy Seguro
+  // Busca JSONP Nativa da Deezer (100% livre de bloqueio CORS)
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -48,29 +46,33 @@ export function App() {
       return;
     }
 
-    const timer = setTimeout(async () => {
+    const timer = setTimeout(() => {
       setIsLoading(true);
-      try {
-        const targetUrl = `https://api.deezer.com/search?q=${encodeURIComponent(searchQuery)}&limit=12`;
-        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
-        
-        if (!response.ok) throw new Error('Erro na busca');
-        
-        const wrapper = await response.json();
-        const data = JSON.parse(wrapper.contents);
-        
+
+      const callbackName = 'deezerJsonpCallback_' + Math.floor(Math.random() * 1000000);
+      
+      (window as any)[callbackName] = (data: any) => {
         if (data && data.data) {
           setSearchResults(data.data);
         } else {
           setSearchResults([]);
         }
-      } catch (err) {
-        console.error('Erro ao buscar músicas:', err);
-        setSearchResults([]);
-      } finally {
         setIsLoading(false);
-      }
-    }, 450);
+        delete (window as any)[callbackName];
+        const scriptToRemove = document.getElementById(callbackName);
+        if (scriptToRemove) scriptToRemove.remove();
+      };
+
+      const script = document.createElement('script');
+      script.id = callbackName;
+      script.src = `https://api.deezer.com/search?q=${encodeURIComponent(searchQuery)}&limit=12&output=jsonp&callback=${callbackName}`;
+      script.onerror = () => {
+        setIsLoading(false);
+        setSearchResults([]);
+      };
+
+      document.body.appendChild(script);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -109,7 +111,7 @@ export function App() {
         });
       }
     } catch (err) {
-      console.log('Voto registrado localmente.');
+      console.log('Voto registrado.');
     }
 
     setCardData({
@@ -128,7 +130,6 @@ export function App() {
   return (
     <div className="min-h-screen bg-[#060a17] text-[#FFEFDE] flex flex-col items-center justify-start px-4 py-6 font-sans overflow-x-hidden">
       
-      {/* Toast Alert */}
       {toastMessage && (
         <div className="fixed top-4 z-[200] bg-[#dc2626] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 font-bold animate-bounce text-xs">
           <Sparkles className="h-4 w-4" />
@@ -166,19 +167,19 @@ export function App() {
           />
         </div>
 
-        {/* STATUS BUSCANDO */}
+        {/* INDICADOR DE CARREGAMENTO */}
         {isLoading && (
-          <div className="flex items-center justify-center gap-2 text-xs text-white/70 py-3 bg-white/5 rounded-2xl">
+          <div className="flex items-center justify-center gap-2 text-xs text-white/70 py-3 bg-white/5 rounded-2xl border border-white/5 animate-pulse">
             <div className="w-3.5 h-3.5 border-2 border-[#dc2626] border-t-transparent rounded-full animate-spin"></div>
-            <span>Buscando na Deezer...</span>
+            <span>Buscando músicas na Deezer...</span>
           </div>
         )}
 
         {/* RESULTADOS DA BUSCA */}
         {searchResults.length > 0 && (
           <div className="space-y-2">
-            <h2 className="text-[11px] font-bold text-white/50 uppercase tracking-wider px-1">Resultados</h2>
-            <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto pr-1">
+            <h2 className="text-[11px] font-bold text-white/50 uppercase tracking-wider px-1">Resultados da Busca</h2>
+            <div className="grid grid-cols-1 gap-2 max-h-[420px] overflow-y-auto pr-1">
               {searchResults.map((track) => (
                 <div
                   key={track.id}
@@ -209,10 +210,9 @@ export function App() {
           </div>
         )}
 
-        {/* HOME COMPLETA (APARECE QUANDO NÃO HÁ BUSCA ATIVA) */}
+        {/* CONTEÚDO PRINCIPAL (DÉCADAS E RANKING) */}
         {!searchQuery && (
           <>
-            {/* CATEGORIAS / ATALHOS RÁPIDOS */}
             <section className="space-y-2">
               <div className="flex items-center gap-1.5 text-xs font-bold text-white/80">
                 <Disc className="h-3.5 w-3.5 text-[#dc2626]" />
@@ -232,7 +232,6 @@ export function App() {
               </div>
             </section>
 
-            {/* RANKING AO VIVO */}
             <section className="bg-[#0b1329] border border-white/10 rounded-3xl p-4 shadow-2xl space-y-3">
               <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                 <div className="flex items-center gap-2 text-white font-bold text-xs">
@@ -266,7 +265,7 @@ export function App() {
         )}
       </main>
 
-      {/* MODAL DE IDENTIFICAÇÃO */}
+      {/* MODAL DE CONFIRMAÇÃO DE VOTO */}
       {loginOpen && (
         <div className="fixed inset-0 z-[150] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-[#0b1329] border border-[#dc2626]/40 p-5 rounded-3xl w-full max-w-sm space-y-3 shadow-2xl">
@@ -328,7 +327,7 @@ export function App() {
         </div>
       )}
 
-      {/* CARD COMPARTILHÁVEL */}
+      {/* CARD DE COMPARTILHAMENTO */}
       <ShareableCard
         open={cardOpen}
         onClose={() => setCardOpen(false)}
