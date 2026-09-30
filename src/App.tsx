@@ -1,8 +1,25 @@
 import React, { useState } from 'react';
-import { Search, Disc, Flame, Music2, Radio, Sparkles } from 'lucide-react';
+import { Search, Disc, Flame, Music2, Radio, Sparkles, Trophy, CheckCircle2 } from 'lucide-react';
+
+// Se você tiver um mock ou import de músicas no seu projeto, ele entra aqui
+interface Song {
+  id: string;
+  title: string;
+  artist: string;
+  cover: string;
+  votes?: number;
+}
 
 export function App() {
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Exemplo de lista/ranking (integre com seus dados do Supabase/API)
+  const topVoted: Song[] = [
+    { id: '1', title: 'Evidências', artist: 'Chitãozinho & Xororó', cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100', votes: 142 },
+    { id: '2', title: 'Telefone Mudo', artist: 'Trio Parada Dura', cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=100', votes: 118 },
+    { id: '3', title: 'Majestade o Sabiá', artist: 'Roberta Miranda', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=100', votes: 95 },
+    { id: '4', title: 'Boate Azul', artist: 'Joaquim & Manuel', cover: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=100', votes: 87 },
+  ];
 
   const categories = [
     { id: '70s80s', label: 'Anos 70 e 80', desc: 'Clássicos Inesquecíveis', icon: Disc, color: 'from-amber-500/20 to-red-600/20 border-amber-500/40 text-amber-300' },
@@ -30,7 +47,7 @@ export function App() {
         </p>
       </div>
 
-      {/* BUSCADOR EM DESTAQUE (Glow sutil para destacar) */}
+      {/* BUSCADOR EM DESTAQUE */}
       <div className="relative group">
         <div className="absolute -inset-0.5 bg-gradient-to-r from-[#dc2626] to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
         <div className="relative flex items-center bg-[#0d152a] border border-white/15 rounded-2xl px-4 py-3.5 shadow-xl">
@@ -45,7 +62,7 @@ export function App() {
         </div>
       </div>
 
-      {/* CATEGORIAS MODERNIZADAS (Cards translúcidos com brilho de borda) */}
+      {/* CATEGORIAS */}
       <div className="space-y-3">
         <h2 className="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#dc2626]"></span>
@@ -72,6 +89,47 @@ export function App() {
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* MAIS VOTADAS NO MOMENTO (Preenche o espaço em branco da tela) */}
+      <div className="bg-[#0d152a]/80 border border-white/10 rounded-3xl p-5 space-y-4 backdrop-blur-md shadow-2xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-amber-400" />
+            <h3 className="font-extrabold text-sm text-white">Mais Votadas no Momento</h3>
+          </div>
+          <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            AO VIVO
+          </span>
+        </div>
+
+        <div className="space-y-2.5">
+          {topVoted.map((song, index) => (
+            <div
+              key={song.id}
+              className="flex items-center justify-between bg-white/5 border border-white/5 hover:border-white/20 p-3 rounded-2xl transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-black text-white/40 w-4 text-center">
+                  {index + 1}
+                </span>
+                <img
+                  src={song.cover}
+                  alt={song.title}
+                  className="w-10 h-10 rounded-xl object-cover"
+                />
+                <div>
+                  <p className="text-xs font-bold text-white leading-tight">{song.title}</p>
+                  <p className="text-[11px] text-white/50">{song.artist}</p>
+                </div>
+              </div>
+              <span className="text-xs font-extrabold text-[#dc2626] bg-[#dc2626]/10 px-2.5 py-1 rounded-lg">
+                {song.votes} votos
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
