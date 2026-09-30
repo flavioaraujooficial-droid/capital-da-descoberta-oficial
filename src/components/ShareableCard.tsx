@@ -1,6 +1,5 @@
-import React, { useRef } from 'react';
-import { Share2, Download, X, Music, CheckCircle2 } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import React from 'react';
+import { Share2, X, Music, CheckCircle2 } from 'lucide-react';
 
 interface ShareableCardProps {
   open: boolean;
@@ -20,33 +19,12 @@ interface ShareableCardProps {
 }
 
 export function ShareableCard({ open, onClose, cardData, onShare }: ShareableCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-
   if (!open || !cardData) return null;
 
-  const handleDownload = async () => {
-    if (!cardRef.current) return;
-    try {
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#060a17',
-      });
-      const image = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = image;
-      link.download = `voto-capital-da-descoberta-${cardData.songName.replace(/\s+/g, '-').toLowerCase()}.png`;
-      link.click();
-    } catch (err) {
-      console.error('Erro ao baixar imagem:', err);
-    }
-  };
-
   return (
-    <div className="fixed inset-0 z-[200] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[200] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
       <div className="relative w-full max-w-sm bg-[#0b1329] border border-[#dc2626]/40 rounded-3xl p-5 shadow-2xl space-y-4">
         
-        {/* Botão Fechar */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
@@ -54,11 +32,7 @@ export function ShareableCard({ open, onClose, cardData, onShare }: ShareableCar
           <X className="h-5 w-5" />
         </button>
 
-        {/* CARTÃO VISUAL (ÁREA CAPTURADA) */}
-        <div
-          ref={cardRef}
-          className="bg-gradient-to-b from-[#111c3a] to-[#060a17] border border-[#dc2626]/30 rounded-2xl p-6 text-center space-y-4 text-white relative overflow-hidden shadow-inner"
-        >
+        <div className="bg-gradient-to-b from-[#111c3a] to-[#060a17] border border-[#dc2626]/30 rounded-2xl p-6 text-center space-y-4 text-white relative overflow-hidden">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dc2626]/20 border border-[#dc2626]/40 text-[#dc2626] text-[10px] font-extrabold uppercase tracking-widest">
             <Music className="h-3 w-3" />
             Voto Oficial Registrado
@@ -68,7 +42,6 @@ export function ShareableCard({ open, onClose, cardData, onShare }: ShareableCar
             Festival Capital da Descoberta
           </h2>
 
-          {/* Imagem da Capa */}
           <div className="relative w-28 h-28 mx-auto rounded-2xl overflow-hidden shadow-2xl border-2 border-[#dc2626]/40">
             <img
               src={cardData.imageUrl || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400'}
@@ -77,7 +50,6 @@ export function ShareableCard({ open, onClose, cardData, onShare }: ShareableCar
             />
           </div>
 
-          {/* Nome da Música e Artista */}
           <div className="space-y-1">
             <h3 className="text-xl font-black text-white leading-tight">
               {cardData.songName}
@@ -89,7 +61,6 @@ export function ShareableCard({ open, onClose, cardData, onShare }: ShareableCar
 
           <hr className="border-white/10 my-2" />
 
-          {/* Dados do Eleitor */}
           {cardData.voter && (
             <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-xs space-y-1">
               <p className="font-bold text-white">
@@ -98,38 +69,22 @@ export function ShareableCard({ open, onClose, cardData, onShare }: ShareableCar
               <p className="text-white/70">
                 📍 {cardData.voter.city}
               </p>
-              {cardData.voter.instagram && (
-                <p className="text-[#dc2626] font-semibold">
-                  {cardData.voter.instagram}
-                </p>
-              )}
             </div>
           )}
 
           <div className="flex items-center justify-center gap-1 text-[10px] text-white/40 pt-1">
             <CheckCircle2 className="h-3 w-3 text-green-500" />
-            <span>Validade Garantida no Supabase</span>
+            <span>Voto Registrado</span>
           </div>
         </div>
 
-        {/* AÇÕES (Compartilhar e Baixar) */}
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <button
-            onClick={handleDownload}
-            className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold text-xs transition-all"
-          >
-            <Download className="h-4 w-4" />
-            Baixar Card
-          </button>
-
-          <button
-            onClick={onShare}
-            className="flex items-center justify-center gap-2 bg-[#dc2626] hover:bg-[#b91c1c] text-white py-3 rounded-xl font-bold text-xs shadow-lg transition-all"
-          >
-            <Share2 className="h-4 w-4" />
-            Compartilhar
-          </button>
-        </div>
+        <button
+          onClick={onShare}
+          className="w-full flex items-center justify-center gap-2 bg-[#dc2626] hover:bg-[#b91c1c] text-white py-3 rounded-xl font-bold text-xs shadow-lg transition-all"
+        >
+          <Share2 className="h-4 w-4" />
+          Compartilhar Voto
+        </button>
 
       </div>
     </div>
