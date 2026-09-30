@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Disc, Flame, Music2, Radio, Sparkles, Trophy, Loader2, Play, Pause, Heart, Share2, X, CheckCircle2, MapPin } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
-// Configuração opcional do Supabase (não trava se não estiver configurado)
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 const supabase = (supabaseUrl && supabaseAnonKey) ? createClient(supabaseUrl, supabaseAnonKey) : null;
@@ -23,7 +22,6 @@ export function App() {
   const [loading, setLoading] = useState(false);
   const [playingSongId, setPlayingSongId] = useState<string | null>(null);
 
-  // Estados de Modais e Voto
   const [pendingVote, setPendingVote] = useState<Song | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
@@ -33,7 +31,6 @@ export function App() {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Ranking Fictício/Inicial das Mais Votadas
   const topVoted: Song[] = [
     { id: '1', title: 'Evidências', artist: 'Chitãozinho & Xororó', cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100', votes: 142 },
     { id: '2', title: 'Telefone Mudo', artist: 'Trio Parada Dura', cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=100', votes: 118 },
@@ -53,10 +50,9 @@ export function App() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Leitor de Prévia de Áudio
   const handlePlayPreview = (song: Song) => {
     if (!song.preview) {
-      showToast('Prévia de áudio não disponível para esta música.');
+      showToast('Prévia de áudio não disponível.');
       return;
     }
 
@@ -69,7 +65,7 @@ export function App() {
       }
       const newAudio = new Audio(song.preview);
       audioRef.current = newAudio;
-      newAudio.play().catch(() => showToast('Não foi possível tocar a prévia.'));
+      newAudio.play().catch(() => showToast('Erro ao reproduzir prévia.'));
       setPlayingSongId(song.id);
 
       newAudio.onended = () => {
@@ -78,7 +74,6 @@ export function App() {
     }
   };
 
-  // Parar áudio ao apagar a busca
   useEffect(() => {
     if (!searchTerm.trim() && audioRef.current) {
       audioRef.current.pause();
@@ -86,7 +81,6 @@ export function App() {
     }
   }, [searchTerm]);
 
-  // Busca na iTunes API
   useEffect(() => {
     if (!searchTerm.trim()) {
       setSearchResults([]);
@@ -122,7 +116,6 @@ export function App() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Selecionar música para votar
   const handleSelectTrack = (song: Song) => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -132,7 +125,6 @@ export function App() {
     setLoginOpen(true);
   };
 
-  // Confirmar Voto
   const handleConfirmVote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pendingVote) return;
@@ -143,7 +135,6 @@ export function App() {
 
     setLoginOpen(false);
 
-    // Salvar no Supabase (se configurado)
     if (supabase) {
       try {
         await supabase.from('votes').insert({
@@ -173,30 +164,28 @@ export function App() {
     showToast('Voto registrado com sucesso!');
   };
 
-  // Ação do Botão Compartilhar (Celular + Desktop)
+  // Texto de convocação ajustado
   const handleShareClick = async () => {
     if (!cardData) return;
-    const shareText = `Votei em "${cardData.songName}" de ${cardData.artistName} no Festival Capital da Descoberta! Venha construir essa história você também:`;
+    const shareText = `Quero ${cardData.artistName} com a música "${cardData.songName}" no Festival Capital da Descoberta! Venha escolher as atrações você também:`;
     const shareUrl = window.location.origin || window.location.href;
 
-    // Se for dispositivo móvel (Android/iOS) com suporte nativo a Web Share
     if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
       try {
         await navigator.share({
-          title: 'Meu Voto - Capital da Descoberta',
+          title: 'Escolha de Atração - Capital da Descoberta',
           text: shareText,
           url: shareUrl,
         });
       } catch (err) {
-        console.log('Compartilhamento cancelado pelo usuário.');
+        console.log('Compartilhamento cancelado.');
       }
     } else {
-      // No Desktop ou navegadores sem Web Share: copia o link formatado
       try {
         await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-        showToast('Link de compartilhamento copiado!');
+        showToast('Texto de indicação copiado!');
       } catch (err) {
-        showToast('Copie a URL do navegador para compartilhar!');
+        showToast('Copie a URL para compartilhar!');
       }
     }
   };
@@ -204,7 +193,6 @@ export function App() {
   return (
     <div className="min-h-screen bg-[#070b19] text-white px-4 py-8 max-w-lg mx-auto space-y-8 relative font-sans overflow-x-hidden">
       
-      {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[300] bg-[#dc2626] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 font-bold animate-bounce text-xs border border-red-400">
           <Sparkles className="h-4 w-4" />
@@ -224,7 +212,7 @@ export function App() {
         </h1>
 
         <p className="text-xs text-white/60 px-4">
-          Escolha a trilha sonora da sua vida, ouça a prévia, vote e compartilhe seu cartão!
+          Indique a trilha sonora da sua vida, ouça a prévia e ajude a construir o festival!
         </p>
       </div>
 
@@ -297,14 +285,14 @@ export function App() {
                         className="bg-[#dc2626] hover:bg-red-700 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition-all flex items-center gap-1 shadow-md"
                       >
                         <Heart className="h-3.5 w-3.5 fill-current" />
-                        <span>Votar</span>
+                        <span>Escolher</span>
                       </button>
                     </div>
                   </div>
                 );
               })
             ) : (
-              !loading && <p className="text-xs text-white/40 py-4 text-center">Nenhuma música encontrada. Tente outro nome!</p>
+              !loading && <p className="text-xs text-white/40 py-4 text-center">Nenhuma música encontrada.</p>
             )}
           </div>
         </div>
@@ -343,12 +331,12 @@ export function App() {
         </div>
       )}
 
-      {/* Mais Votadas no Momento (Ranking) */}
+      {/* Mais Indicadas no Momento */}
       <div className="bg-[#0d152a]/80 border border-white/10 rounded-3xl p-5 space-y-4 backdrop-blur-md shadow-2xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-amber-400" />
-            <h3 className="font-extrabold text-sm text-white">Mais Votadas no Momento</h3>
+            <h3 className="font-extrabold text-sm text-white">Mais Indicadas no Momento</h3>
           </div>
           <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-bold">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -377,18 +365,18 @@ export function App() {
                 </div>
               </div>
               <span className="text-xs font-extrabold text-[#dc2626] bg-[#dc2626]/10 px-2.5 py-1 rounded-lg">
-                {song.votes} votos
+                {song.votes} indicações
               </span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* MODAL DE IDENTIFICAÇÃO DO ELEITOR */}
+      {/* MODAL DE IDENTIFICAÇÃO */}
       {loginOpen && (
         <div className="fixed inset-0 z-[200] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-[#0b1329] border border-[#dc2626]/40 p-5 rounded-3xl w-full max-w-sm space-y-3 shadow-2xl">
-            <h3 className="text-base font-black text-white">Confirme seu Voto</h3>
+            <h3 className="text-base font-black text-white">Registre sua Indicação</h3>
             
             <form onSubmit={handleConfirmVote} className="space-y-2.5">
               <div>
@@ -410,7 +398,7 @@ export function App() {
                   required
                   value={voterInfo.city}
                   onChange={(e) => setVoterInfo({ ...voterInfo, city: e.target.value })}
-                  placeholder="Ex: Alagoinhas, Juazeiro, Salvador..."
+                  placeholder="Ex: Alagoinhas, Feira de Santana..."
                   className="w-full bg-[#060a17] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-[#dc2626]"
                 />
               </div>
@@ -438,7 +426,7 @@ export function App() {
                   type="submit"
                   className="w-1/2 py-2.5 bg-[#dc2626] text-white text-xs font-bold rounded-xl shadow-lg"
                 >
-                  Finalizar Voto
+                  Confirmar Indicação
                 </button>
               </div>
             </form>
@@ -446,12 +434,11 @@ export function App() {
         </div>
       )}
 
-      {/* CARD DE COMPARTILHAMENTO OFICIAL */}
+      {/* CARD DE COMPARTILHAMENTO */}
       {cardOpen && cardData && (
         <div className="fixed inset-0 z-[250] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
           <div className="relative w-full max-w-md bg-gradient-to-b from-[#1a0826] via-[#0d1127] to-[#050714] border border-[#dc2626]/50 rounded-3xl p-6 shadow-[0_0_50px_rgba(220,38,38,0.3)] space-y-5 my-auto">
             
-            {/* Botão Fechar */}
             <button
               onClick={() => setCardOpen(false)}
               className="absolute right-4 top-4 p-2 text-white/60 hover:text-white bg-white/10 rounded-full transition-all hover:scale-110 z-10"
@@ -459,19 +446,17 @@ export function App() {
               <X className="h-5 w-5" />
             </button>
 
-            {/* ARTES DO CARD VIP */}
             <div className="relative bg-gradient-to-b from-[#161f3d]/80 to-[#080d1e]/90 border border-white/15 rounded-2xl p-6 text-center space-y-4 shadow-2xl overflow-hidden backdrop-blur-md">
               
               <div className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-300 bg-amber-500/10 px-3.5 py-1 rounded-full border border-amber-500/30">
                 <Sparkles className="h-3 w-3 animate-spin" />
-                <span>Voto Oficial Registrado</span>
+                <span>Indicação Oficial Registrada</span>
               </div>
 
               <h3 className="text-xs font-black tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-amber-200 to-red-500 uppercase">
                 Festival Capital da Descoberta
               </h3>
 
-              {/* Capa com Neon Glow */}
               <div className="relative w-40 h-40 mx-auto my-2">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#dc2626] to-amber-500 rounded-2xl blur-lg opacity-70 animate-pulse"></div>
                 <div className="relative w-full h-full rounded-2xl overflow-hidden border-2 border-white/30 shadow-2xl">
@@ -492,10 +477,9 @@ export function App() {
                 </p>
               </div>
 
-              {/* Informações do Eleitor */}
               <div className="bg-white/5 border border-white/10 rounded-xl p-3.5 text-xs space-y-1.5 backdrop-blur-sm shadow-inner">
                 <p className="font-extrabold text-white">
-                  Votado por: <span className="text-amber-300">{cardData.voter?.name}</span>
+                  Indicado por: <span className="text-amber-300">{cardData.voter?.name}</span>
                 </p>
                 {cardData.voter?.city && (
                   <p className="text-white/80 text-[11px] flex items-center justify-center gap-1 font-medium">
@@ -516,13 +500,12 @@ export function App() {
               </div>
             </div>
 
-            {/* BOTÃO DE COMPARTILHAR */}
             <button
               onClick={handleShareClick}
               className="w-full bg-gradient-to-r from-[#dc2626] to-red-700 hover:from-red-600 hover:to-red-800 text-white py-3.5 px-4 rounded-2xl font-black text-sm shadow-[0_0_20px_rgba(220,38,38,0.4)] flex items-center justify-center gap-2 transition-all active:scale-95 border border-red-500/30"
             >
               <Share2 className="h-4 w-4" />
-              <span>Compartilhar Voto</span>
+              <span>Convocar Amigos no WhatsApp</span>
             </button>
           </div>
         </div>
