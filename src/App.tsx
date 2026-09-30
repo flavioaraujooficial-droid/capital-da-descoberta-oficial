@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Music, Sparkles, Heart, Trophy, Radio, Disc, Flame } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Music, Sparkles, Heart, Trophy, Radio, Disc, Flame, Play, Pause, Volume2 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { ShareableCard } from './components/ShareableCard';
 
@@ -13,6 +13,10 @@ export function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingVote, setPendingVote] = useState<any>(null);
   
+  // Estado para controlar a prévia de áudio
+  const [playingTrackId, setPlayingTrackId] = useState<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   const [loginOpen, setLoginOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
   const [cardData, setCardData] = useState<any>(null);
@@ -38,7 +42,43 @@ export function App() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Busca JSONP Nativa da Deezer (100% livre de bloqueio CORS)
+  // Função para dar Play/Pause na prévia da música
+  const handleTogglePlay = (track: any) => {
+    if (!track.preview) {
+      showToast('Prévia de áudio indisponível para esta faixa.');
+      return;
+    }
+
+    if (playingTrackId === track.id) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setPlayingTrackId(null);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const newAudio = new Audio(track.preview);
+      audioRef.current = newAudio;
+      newAudio.play();
+      setPlayingTrackId(track.id);
+
+      newAudio.onended = () => {
+        setPlayingTrackId(null);
+      };
+    }
+  };
+
+  // Parar áudio ao fechar/mudar busca
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
+
+  // Busca JSONP Nativa da Deezer
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -53,7 +93,11 @@ export function App() {
       
       (window as any)[callbackName] = (data: any) => {
         if (data && data.data) {
-          setSearchResults(data.data);
+          // Filtrar duplicados pelo título da música
+          const uniqueTracks = data.data.filter((track: any, index: number, self: any[]) =>
+            index === self.findIndex((t) => t.title.toLowerCase() === track.title.toLowerCase())
+          );
+          setSearchResults(uniqueTracks);
         } else {
           setSearchResults([]);
         }
@@ -65,7 +109,7 @@ export function App() {
 
       const script = document.createElement('script');
       script.id = callbackName;
-      script.src = `https://api.deezer.com/search?q=${encodeURIComponent(searchQuery)}&limit=12&output=jsonp&callback=${callbackName}`;
+      script.src = `https://api.deezer.com/search?q=${encodeURIComponent(searchQuery)}&limit=15&output=jsonp&callback=${callbackName}`;
       script.onerror = () => {
         setIsLoading(false);
         setSearchResults([]);
@@ -78,6 +122,12 @@ export function App() {
   }, [searchQuery]);
 
   const handleSelectTrack = (track: any) => {
+    // Parar áudio ao selecionar
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setPlayingTrackId(null);
+    }
+
     setPendingVote({
       artistName: track.artist.name,
       songName: track.title,
@@ -149,7 +199,7 @@ export function App() {
         </h1>
         
         <p className="text-xs text-[#FFEFDE]/70 max-w-xs mx-auto">
-          Escolha a trilha sonora da sua vida, registre seu voto e compartilhe seu cartão com a Bahia!
+          Escolha a trilha sonora da sua vida, ouça a prévia, vote e compartilhe seu cartão!
         </p>
       </header>
 
@@ -171,46 +221,69 @@ export function App() {
         {isLoading && (
           <div className="flex items-center justify-center gap-2 text-xs text-white/70 py-3 bg-white/5 rounded-2xl border border-white/5 animate-pulse">
             <div className="w-3.5 h-3.5 border-2 border-[#dc2626] border-t-transparent rounded-full animate-spin"></div>
-            <span>Buscando músicas na Deezer...</span>
+            <span>Buscando na Deezer...</span>
           </div>
         )}
 
-        {/* RESULTADOS DA BUSCA */}
+        {/* RESULTADOS DA BUSCA COM PLAYER */}
         {searchResults.length > 0 && (
           <div className="space-y-2">
             <h2 className="text-[11px] font-bold text-white/50 uppercase tracking-wider px-1">Resultados da Busca</h2>
             <div className="grid grid-cols-1 gap-2 max-h-[420px] overflow-y-auto pr-1">
-              {searchResults.map((track) => (
-                <div
-                  key={track.id}
-                  className="flex items-center justify-between gap-3 bg-[#0a1224] border border-white/10 hover:border-[#dc2626]/60 p-2.5 rounded-2xl shadow-md transition-all"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <img
-                      src={track.album?.cover_medium || track.artist?.picture_medium}
-                      alt={track.title}
-                      className="h-11 w-11 rounded-xl object-cover flex-shrink-0"
-                    />
-                    <div className="min-w-0">
-                      <h3 className="font-bold text-white text-xs truncate">{track.title}</h3>
-                      <p className="text-[10px] text-white/60 truncate">{track.artist?.name}</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleSelectTrack(track)}
-                    className="flex-shrink-0 bg-[#dc2626] hover:bg-[#b91c1c] text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-1"
+              {searchResults.map((track) => {
+                const isPlaying = playingTrackId === track.id;
+                return (
+                  <div
+                    key={track.id}
+                    className="flex items-center justify-between gap-2 bg-[#0a1224] border border-white/10 hover:border-[#dc2626]/60 p-2.5 rounded-2xl shadow-md transition-all"
                   >
-                    <Heart className="h-3 w-3 fill-current" />
-                    <span>Votar</span>
-                  </button>
-                </div>
-              ))}
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      {/* Botão de Ouvir Prévia */}
+                      <button
+                        onClick={() => handleTogglePlay(track)}
+                        className={`relative group flex-shrink-0 w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center ${isPlaying ? 'ring-2 ring-[#dc2626]' : ''}`}
+                        title="Ouvir prévia"
+                      >
+                        <img
+                          src={track.album?.cover_medium || track.artist?.picture_medium}
+                          alt={track.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className={`absolute inset-0 flex items-center justify-center transition-all ${isPlaying ? 'bg-black/60' : 'bg-black/40 group-hover:bg-black/60'}`}>
+                          {isPlaying ? (
+                            <Pause className="h-5 w-5 text-[#dc2626] animate-pulse" />
+                          ) : (
+                            <Play className="h-5 w-5 text-white ml-0.5" />
+                          )}
+                        </div>
+                      </button>
+
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-white text-xs truncate">{track.title}</h3>
+                        <p className="text-[10px] text-white/60 truncate">{track.artist?.name}</p>
+                        {isPlaying && (
+                          <span className="inline-flex items-center gap-1 text-[9px] text-[#dc2626] font-semibold mt-0.5">
+                            <Volume2 className="h-2.5 w-2.5 animate-bounce" /> Tocando prévia...
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleSelectTrack(track)}
+                      className="flex-shrink-0 bg-[#dc2626] hover:bg-[#b91c1c] text-white px-3 py-2 rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-1"
+                    >
+                      <Heart className="h-3.5 w-3.5 fill-current" />
+                      <span>Votar</span>
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* CONTEÚDO PRINCIPAL (DÉCADAS E RANKING) */}
+        {/* CATEGORIAS E RANKING */}
         {!searchQuery && (
           <>
             <section className="space-y-2">
@@ -265,7 +338,7 @@ export function App() {
         )}
       </main>
 
-      {/* MODAL DE CONFIRMAÇÃO DE VOTO */}
+      {/* MODAL DE DADOS DO VOTANTE */}
       {loginOpen && (
         <div className="fixed inset-0 z-[150] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-[#0b1329] border border-[#dc2626]/40 p-5 rounded-3xl w-full max-w-sm space-y-3 shadow-2xl">
