@@ -27,9 +27,8 @@ export function ShareableCard({ open, onClose, cardData }: ShareableCardProps) {
   if (!open || !cardData) return null;
 
   const shareText =
-    `Votei em "${cardData.songName}", de ${cardData.artistName}, ` +
-    'no Festival Capital da Descoberta! 🎶 ' +
-    'Participe também e ajude a escolher as atrações do festival!';
+  `Estou na torcida por ${cardData.artistName} com a música "${cardData.songName}" no Festival Capital da Descoberta! 🎶✨ ` +
+  'Quero ver esse artista fazendo parte dessa grande festa! Participe também e ajude a escolher as atrações.';
 
   // Compartilha o endereço público principal, sem parâmetros de navegação.
   const shareUrl = `${window.location.origin}/`;
