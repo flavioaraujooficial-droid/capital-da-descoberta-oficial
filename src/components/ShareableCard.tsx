@@ -1,10 +1,21 @@
-import React from 'react';
-import { X, Share2, CheckCircle2, Music, MapPin, Sparkles, Flame } from 'lucide-react';
+import { X, Share2, CheckCircle2, MapPin, Sparkles } from 'lucide-react';
+
+interface CardData {
+  artistName: string;
+  songName: string;
+  decade: string;
+  imageUrl: string;
+  voter: {
+    name: string;
+    city: string;
+    instagram: string;
+  };
+}
 
 interface ShareableCardProps {
   open: boolean;
   onClose: () => void;
-  cardData: any;
+  cardData: CardData | null;
   onShare: () => void;
 }
 
@@ -22,14 +33,14 @@ export function ShareableCard({ open, onClose, cardData }: ShareableCardProps) {
           text: shareText,
           url: shareUrl,
         });
-      } catch (err) {
-        console.log('Compartilhamento cancelado.');
+      } catch {
+        // Compartilhamento cancelado
       }
     } else {
       try {
         await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
         alert('Link de compartilhamento copiado!');
-      } catch (err) {
+      } catch {
         alert('Copie o link da página para compartilhar!');
       }
     }

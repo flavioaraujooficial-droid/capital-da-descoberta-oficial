@@ -1,4 +1,3 @@
-import { SearchBar } from './SearchBar';
 import { TerritorySelector } from './TerritorySelector';
 import type { Artist } from '@/data/artists';
 import type { Territory } from '@/data/territories';
@@ -10,7 +9,7 @@ interface HeroProps {
   onSelectTerritory: (territory: Territory) => void;
 }
 
-export function Hero({ onSelectArtist, onSubmitCustom, territory, onSelectTerritory }: HeroProps) {
+export function Hero({ territory, onSelectTerritory }: HeroProps) {
   return (
     <div className="relative min-h-[75vh] flex flex-col items-center justify-center px-4 py-8 overflow-hidden bg-gradient-to-b from-[#06101E] via-[#0B1B33] to-[#06101E] text-white">
       {/* Efeito de luz ambiente */}
@@ -20,7 +19,7 @@ export function Hero({ onSelectArtist, onSubmitCustom, territory, onSelectTerrit
       </div>
 
       <div className="relative z-10 max-w-3xl mx-auto text-center space-y-6 w-full">
-        
+
         {/* Seletor de Território de Identidade */}
         <div className="flex justify-center">
           <TerritorySelector selected={territory} onSelect={onSelectTerritory} />
@@ -48,16 +47,6 @@ export function Hero({ onSelectArtist, onSubmitCustom, territory, onSelectTerrit
             Deixe sua marca na maior intervenção cultural da Bahia.
           </p>
         </div>
-
-        {/* Buscador Integrado Imediato */}
-        <div className="pt-2 w-full max-w-xl mx-auto">
-          <SearchBar
-            onSelect={onSelectArtist}
-            onSubmitCustom={onSubmitCustom}
-            fixed={false}
-          />
-        </div>
-
       </div>
     </div>
   );

@@ -54,13 +54,13 @@ const BAHIA_CITIES = [
   "Euclides da Cunha", "Eunápolis", "Exu", "Fátima", "Feira da Mata", "Feira de Santana", "Filadélfia", "Firmino Alves", "Floresta Azul", "Formosa do Rio Preto",
   "Gandu", "Gavião", "Gentio do Ouro", "Glória", "Gongogi", "Governador Mangabeira", "Guajeru", "Guanambi", "Guaratinga", "Heliópolis",
   "Iaçu", "Ibiassucê", "Ibicaraí", "Ibicoara", "Ibicuí", "Ibipeba", "Ibipitanga", "Ibiquera", "Ibirapitanga", "Ibirapuã",
-  "Ibirapitanga", "Ibirataia", "Ibitiara", "Ibititá", "Ibotirama", "Ichu", "Igaporé", Igrapiúna, "Iguaí", "Ilhéus",
+  "Ibirapitanga", "Ibirataia", "Ibitiara", "Ibititá", "Ibotirama", "Ichu", "Igaporé", "Igrapiúna", "Iguaí", "Ilhéus",
   "Inhambupe", "Ipecaetá", "Ipiaú", "Ipirá", "Ipupiara", "Irajuba", "Iramaia", "Iraquara", "Irará", "Irecê",
   "Itagi", "Valença", "Valente", "Várzea da Roça", "Várzea do Poço", "Várzea Nova", "Varzedo", "Vera Cruz", "Vereda", "Vitória da Conquista",
   "Wagner", "Wanderley", "Wenceslau Guimarães", "Xique-Xique"
 ];
 
-export function LoginModal({ open, onClose, onConfirm, selectedLabel, territory }: LoginModalProps) {
+export function LoginModal({ open, onClose, onConfirm, selectedLabel }: LoginModalProps) {
   const [name, setName] = useState('');
   const [cityInput, setCityInput] = useState('');
   const [instagram, setInstagram] = useState('');
