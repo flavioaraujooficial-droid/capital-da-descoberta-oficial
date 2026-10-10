@@ -13,7 +13,7 @@ import {
   Heart,
 } from 'lucide-react';
 
-import { supabase, type Vote } from '@/lib/supabase';
+import { supabase, type Vote, makeFingerprint } from '@/lib/supabase';
 import type { Artist } from '@/data/artists';
 import type { Territory } from '@/data/territories';
 import { TERRITORIES } from '@/data/territories';
@@ -72,6 +72,7 @@ function App() {
 
   const [votes, setVotes] = useState<Vote[]>([]);
   const [votesLoading, setVotesLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -209,27 +210,15 @@ function App() {
 
   // --- Confirm vote via LoginModal ---
   const handleConfirmVote = async (info: VoterInfo) => {
-    if (!pendingVote) return;
-    setLoginOpen(false);
+    if (!pendingVote || submitting) return;
+    setSubmitting(true);
+
+    const fingerprint = makeFingerprint(info.name, info.city, pendingVote.artistName, pendingVote.songName);
 
     try {
-      const { error } = await supabase.from('votes').insert({
-        artist_name: pendingVote.artistName,
-        song_name: pendingVote.songName,
-        decade: pendingVote.decade,
-        image_url: pendingVote.imageUrl,
-        voter_name: info.name,
-        city: info.city,
-        instagram: info.instagram || null,
-        is_custom: pendingVote.isCustom,
-        territory: territory.name,
-      });
-      if (error) {
-        console.error('Erro ao registrar voto:', error);
-      } else {
-        // Optimistically add to local votes list
-        const newVote: Vote = {
-          id: crypto.randomUUID(),
+      const { data, error } = await supabase
+        .from('votes')
+        .insert({
           artist_name: pendingVote.artistName,
           song_name: pendingVote.songName,
           decade: pendingVote.decade,
@@ -239,25 +228,46 @@ function App() {
           instagram: info.instagram || null,
           is_custom: pendingVote.isCustom,
           territory: territory.name,
-          created_at: new Date().toISOString(),
-        };
-        setVotes((prev) => [newVote, ...prev]);
+          fingerprint,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        if (error.code === '23505') {
+          showToast('Você já registrou este voto. Obrigado!');
+        } else {
+          showToast('Não foi possível registrar seu voto. Tente novamente.');
+          console.error('Erro ao registrar voto:', error);
+        }
+        setSubmitting(false);
+        return;
       }
+
+      // Only close modal and show success after DB confirms
+      setLoginOpen(false);
+
+      if (data) {
+        setVotes((prev) => [data as Vote, ...prev]);
+      }
+
+      setCardData({
+        artistName: pendingVote.artistName,
+        songName: pendingVote.songName,
+        decade: pendingVote.decade,
+        imageUrl: pendingVote.imageUrl,
+        voter: info,
+      });
+
+      setCardOpen(true);
+      setPendingVote(null);
+      showToast('Voto registrado com sucesso!');
     } catch (err) {
+      showToast('Erro de conexão. Verifique sua internet e tente novamente.');
       console.error('Erro ao registrar voto:', err);
+    } finally {
+      setSubmitting(false);
     }
-
-    setCardData({
-      artistName: pendingVote.artistName,
-      songName: pendingVote.songName,
-      decade: pendingVote.decade,
-      imageUrl: pendingVote.imageUrl,
-      voter: info,
-    });
-
-    setCardOpen(true);
-    setPendingVote(null);
-    showToast('Voto registrado com sucesso!');
   };
 
   // --- Share card ---
@@ -316,7 +326,7 @@ function App() {
       />
 
       {/* iTunes search section — preserved from legacy */}
-      <section className="px-4 sm:px-6 py-8 max-w-3xl mx-auto space-y-6">
+      <section className="px-4 sm:px-6 py-4 sm:py-8 max-w-3xl mx-auto space-y-6">
         {/* Search field */}
         <div className="relative group">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-[#dc2626] to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
@@ -459,6 +469,7 @@ function App() {
         onConfirm={handleConfirmVote}
         selectedLabel={selectedLabel}
         territory={territory}
+        submitting={submitting}
       />
 
       {/* Shareable card */}
@@ -475,3 +486,4 @@ function App() {
 }
 
 export default App;
+
