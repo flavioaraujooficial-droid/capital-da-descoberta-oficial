@@ -235,5 +235,3 @@ export function ShareableCard({ open, onClose, cardData }: ShareableCardProps) {
     </div>
   );
 }
-
-
