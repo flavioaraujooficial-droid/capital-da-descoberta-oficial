@@ -1,155 +1,133 @@
-import { useState } from 'react';
-import { X, Share2, Check, Copy, Sparkles, MapPin } from 'lucide-react';
-
-interface VoterInfo {
-  name: string;
-  city: string;
-}
+import { X, Share2, CheckCircle2, MapPin, Sparkles } from 'lucide-react';
 
 interface CardData {
   artistName: string;
   songName: string;
   decade: string;
   imageUrl: string;
-  voter: VoterInfo;
+  voter: {
+    name: string;
+    city: string;
+    instagram: string;
+  };
 }
 
 interface ShareableCardProps {
   open: boolean;
   onClose: () => void;
   cardData: CardData | null;
-  onShare?: () => void;
+  onShare: () => void;
 }
 
 export function ShareableCard({ open, onClose, cardData }: ShareableCardProps) {
-  const [shareStatus, setShareStatus] = useState('');
-
   if (!open || !cardData) return null;
 
-  const shareText = `Estou na torcida por ${cardData.artistName} com a música "${cardData.songName}" no Festival Capital da Descoberta! 🎶✨ Quero ver esse artista fazendo parte dessa grande festa! Participe também e ajude a escolher as atrações.`;
-
-  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : '';
-
   const handleShareClick = async () => {
-    setShareStatus('');
+    const shareText = `Votei em ${cardData.songName} de ${cardData.artistName} no Festival Capital da Descoberta! Venha construir essa história:`;
+    const shareUrl = window.location.href;
 
-    const shareData = {
-      title: 'Festival Capital da Descoberta',
-      text: shareText,
-      url: shareUrl,
-    };
-
-    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+    if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
       try {
-        await navigator.share(shareData);
-        setShareStatus('Convite pronto para compartilhar!');
-        return;
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          return;
-        }
+        await navigator.share({
+          title: 'Meu Voto - Capital da Descoberta',
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch {
+        // Compartilhamento cancelado
       }
-    }
-
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-        setShareStatus('Convite e link copiados! Agora é só enviar aos amigos.');
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+        alert('Link de compartilhamento copiado!');
+      } catch {
+        alert('Copie o link da página para compartilhar!');
       }
-    } catch {
-      window.prompt(
-        'Copie o convite abaixo e envie aos seus amigos:',
-        `${shareText}\n${shareUrl}`
-      );
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-lg bg-gradient-to-b from-[#0B1B33] via-[#071324] to-[#040A14] border border-[#832E43]/40 rounded-3xl p-6 sm:p-8 shadow-2xl text-white overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
+      <div className="relative w-full max-w-md bg-gradient-to-b from-[#1a0826] via-[#0d1127] to-[#050714] border border-[#dc2626]/50 rounded-3xl p-6 shadow-[0_0_50px_rgba(220,38,38,0.3)] space-y-5 my-auto">
         
-        {/* Elementos decorativos de fundo */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-[#dc2626]/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
+        {/* Botão Fechar */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors z-10"
-          aria-label="Fechar"
+          className="absolute right-4 top-4 p-2 text-white/60 hover:text-white bg-white/10 rounded-full transition-all hover:scale-110 z-10"
         >
-          <X className="w-5 h-5" />
+          <X className="h-5 w-5" />
         </button>
 
-        <div className="relative z-10 space-y-6">
+        {/* CARTÃO VISUAL ESTILO FESTIVAL / CREDENCIAL VIP */}
+        <div className="relative bg-gradient-to-b from-[#161f3d]/80 to-[#080d1e]/90 border border-white/15 rounded-2xl p-6 text-center space-y-4 shadow-2xl overflow-hidden backdrop-blur-md">
           
-          {/* Cabeçalho do Card */}
-          <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold tracking-wide uppercase">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Card Oficial de Torcida</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-              Festival Capital da Descoberta
-            </h2>
-            <p className="text-xs text-gray-400">
-              Apoie seu artista favorito rumo ao grande palco!
-            </p>
+          {/* Efeitos de Luz no Fundo */}
+          <div className="absolute -top-12 -left-12 w-32 h-32 bg-[#dc2626]/30 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-purple-600/30 rounded-full blur-3xl pointer-events-none"></div>
+
+          {/* Badge Superior */}
+          <div className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-300 bg-amber-500/10 px-3.5 py-1 rounded-full border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+            <Sparkles className="h-3 w-3 animate-spin" />
+            <span>Voto Oficial Registrado</span>
           </div>
 
-          {/* Destaque do Artista / Música */}
-          <div className="bg-black/40 border border-white/10 rounded-2xl p-4 sm:p-5 flex items-center gap-4">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-amber-400/80 shadow-lg flex-shrink-0">
+          <h3 className="text-xs font-black tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-amber-200 to-red-500 uppercase">
+            Festival Capital da Descoberta
+          </h3>
+
+          {/* CAPA DA MÚSICA COM GLOW DE NEON */}
+          <div className="relative w-40 h-40 mx-auto my-2">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#dc2626] to-amber-500 rounded-2xl blur-lg opacity-70 animate-pulse"></div>
+            <div className="relative w-full h-full rounded-2xl overflow-hidden border-2 border-white/30 shadow-2xl">
               <img
-                src={cardData.imageUrl || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400'}
-                alt={cardData.artistName}
+                src={cardData.imageUrl || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300'}
+                alt={cardData.songName}
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="space-y-1 min-w-0">
-              <span className="text-xs uppercase tracking-wider text-amber-400 font-bold block">
-                {cardData.decade || 'Atração'}
-              </span>
-              <h3 className="text-lg sm:text-xl font-bold text-white truncate">
-                {cardData.artistName}
-              </h3>
-              <p className="text-sm text-gray-300 font-medium truncate">
-                🎵 {cardData.songName}
+          </div>
+
+          <div>
+            <h2 className="text-xl font-black text-white leading-tight drop-shadow-md">
+              {cardData.songName}
+            </h2>
+            <p className="text-sm font-extrabold text-[#dc2626] tracking-wide mt-1 drop-shadow">
+              {cardData.artistName}
+            </p>
+          </div>
+
+          {/* DADOS DO VOTANTE - ESTILO INGRESSO */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-3.5 text-xs space-y-1.5 backdrop-blur-sm shadow-inner">
+            <p className="font-extrabold text-white">
+              Votado por: <span className="text-amber-300">{cardData.voter?.name}</span>
+            </p>
+            {cardData.voter?.city && (
+              <p className="text-white/80 text-[11px] flex items-center justify-center gap-1 font-medium">
+                <MapPin className="h-3.5 w-3.5 text-[#dc2626]" />
+                {cardData.voter.city}
               </p>
-              <div className="flex items-center gap-1 text-xs text-gray-400 pt-1">
-                <MapPin className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
-                <span className="truncate">Indicado por {cardData.voter.name} ({cardData.voter.city})</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Mensagem compartilhável pré-formatada */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-gray-300 italic text-center">
-            "{shareText}"
-          </div>
-
-          {/* Botão de Ação */}
-          <div className="space-y-3 pt-1">
-            <button
-              onClick={handleShareClick}
-              className="w-full py-3.5 px-6 bg-gradient-to-r from-[#dc2626] to-[#832E43] hover:from-[#b91c1c] hover:to-[#6b2131] text-white font-bold rounded-xl flex items-center justify-center gap-2.5 shadow-xl shadow-red-950/40 transition-all transform active:scale-[0.98]"
-            >
-              <Share2 className="w-5 h-5" />
-              Compartilhar Indicação Agora
-            </button>
-
-            {shareStatus && (
-              <div 
-                role="status"
-                aria-live="polite"
-                className="text-xs text-emerald-400 bg-emerald-950/60 py-2.5 px-4 rounded-xl border border-emerald-800/40 text-center font-medium animate-fadeIn flex items-center justify-center gap-2"
-              >
-                <Check className="w-4 h-4" />
-                <span>{shareStatus}</span>
-              </div>
+            )}
+            {cardData.voter?.instagram && (
+              <p className="text-[#dc2626] text-[11px] font-bold">
+                {cardData.voter.instagram.startsWith('@') ? cardData.voter.instagram : `@${cardData.voter.instagram}`}
+              </p>
             )}
           </div>
 
+          <div className="flex items-center justify-center gap-1.5 text-[10px] text-emerald-400 font-bold">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            <span>Confirmado na Base de Dados</span>
+          </div>
         </div>
+
+        {/* BOTÃO COMPARTILHAR */}
+        <button
+          onClick={handleShareClick}
+          className="w-full bg-gradient-to-r from-[#dc2626] to-red-700 hover:from-red-600 hover:to-red-800 text-white py-3.5 px-4 rounded-2xl font-black text-sm shadow-[0_0_20px_rgba(220,38,38,0.4)] flex items-center justify-center gap-2 transition-all active:scale-95 border border-red-500/30"
+        >
+          <Share2 className="h-4 w-4" />
+          <span>Compartilhar Meu Card</span>
+        </button>
       </div>
     </div>
   );
