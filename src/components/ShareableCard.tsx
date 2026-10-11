@@ -1,4 +1,3 @@
-```tsx
 import { useState } from 'react';
 import { X, Share2, CheckCircle2, MapPin, Sparkles, Copy } from 'lucide-react';
 
